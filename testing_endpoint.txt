@@ -1,0 +1,654 @@
+#Promote existing user as admin
+from django.contrib.auth import get_user_model
+User = get_user_model()
+u = User.objects.get(email='user@example.com')
+u.is_staff = True
+u.is_superuser = True
+u.save()
+
+
+#Delete user
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
+User.objects.filter(email='xyz@gmail.com').delete()
+
+
+# 1. LOGIN - Get JWT Token
+curl -X POST "http://127.0.0.1:8000/api/auth/login/" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"your_password"}'
+
+# 2. SIGNUP
+curl -X POST "http://127.0.0.1:8000/api/auth/signup/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "name",
+    "email": "xyz@gmail.com",
+    "password": "pass"
+  }'
+
+# 3. REFRESH TOKEN
+curl -X POST "http://127.0.0.1:8000/api/auth/token/refresh/" \
+  -H "Content-Type: application/json" \
+  -d '{"refresh":"YOUR_REFRESH_TOKEN"}'
+
+# 4. AUTH STATUS
+curl -X GET "http://127.0.0.1:8000/api/auth-status/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# ====================
+# ROLE SELECTION
+# ====================
+
+# 5. GET Available Roles
+curl -X GET "http://127.0.0.1:8000/api/select-role/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 6. SELECT Single Role (attender)
+curl -X POST "http://127.0.0.1:8000/api/select-role/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{"roles":["attender"]}'
+
+# 7. SELECT Single Role (taker)
+curl -X POST "http://127.0.0.1:8000/api/select-role/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{"roles":["taker"]}'
+
+# 8. SELECT Both Roles
+curl -X POST "http://127.0.0.1:8000/api/select-role/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{"roles":["attender","taker"]}'
+
+  A. Role Management (Switching/Adding)
+
+#Add 'taker' role to an existing attender:
+
+curl -X POST http://127.0.0.1:8000/api/add-role/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "role": "taker"
+  }'
+
+#Add 'attender' role to an existing taker:
+
+curl -X POST http://127.0.0.1:8000/api/add-role/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "role": "attender"
+  }'
+
+# 9. GET Onboarding Status
+curl -X GET "http://127.0.0.1:8000/api/onboarding/status/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 10. SUBMIT COMMON ONBOARDING STEP (ALL ROLES)
+curl -X POST "http://127.0.0.1:8000/api/onboarding/step/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "step": "common",
+    "data": {
+      "name": "John Doe",
+      "phone_prefix": "+91",
+      "mobile_number": "9876543210",
+      "bio": "Experienced software engineer with 5+ years in full-stack development.",
+      "designation": "Senior Developer",
+      "company": "Tech Corp Inc.",
+      "experience_years": 5,
+      "available_time_slots": [
+        {"day": "monday", "start_time": "09:00", "end_time": "17:00"},
+        {"day": "wednesday", "start_time": "14:00", "end_time": "18:00"}
+      ]
+    }
+  }'
+
+# 11. SUBMIT INTERVIEWER STEP (for TAKER role only)
+
+curl -X POST "http://127.0.0.1:8000/api/onboarding/step/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "step": "interviewer",
+    "data": {
+      "expertise_areas": [
+        {"area": "Python", "level": "expert"},
+        {"area": "System Design", "level": "intermediate"}
+      ],
+      "interviewing_experience_years": 3,
+      "credits_per_interview": 100,
+      "linkedin_profile_url": "https://linkedin.com/in/johndoe"
+    }
+  }'
+
+#complete onboarding for taker role
+
+curl -X POST http://localhost:8000/api/onboarding/complete/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "common": {
+      "name": "Jane Smith",
+      "mobile_number": "+1-555-123-4567",
+      "phone_prefix": "+91",
+      "bio": "Technical lead with expertise in distributed systems and cloud architecture",
+      "designation": "Staff Engineer",
+      "company": "Tech Corp Inc.",
+      "experience_years": 8,
+      "available_time_slots": [
+        {"day": "tuesday", "start_time": "10:00", "end_time": "14:00"},
+        {"day": "thursday", "start_time": "15:00", "end_time": "19:00"}
+      ]
+    },
+    "interviewer": {
+      "expertise_areas": [
+        {"area": "System Design", "level": "expert"},
+        {"area": "Microservices", "level": "expert"},
+        {"area": "AWS", "level": "intermediate"}
+      ],
+      "interviewing_experience_years": 5,
+      "credits_per_interview": 150,
+      "linkedin_profile_url": "https://linkedin.com/in/janesmith"
+    }
+  }'
+
+
+# 12. SUBMIT INTERVIEWEE STEP (for ATTENDER role only)
+
+curl -X POST "http://127.0.0.1:8000/api/onboarding/step/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "step": "interviewee",
+    "data": {
+      "skills": [
+        {"skill": "Python", "level": "expert"},
+        {"skill": "JavaScript", "level": "intermediate"}
+      ],
+      "target_role": "Senior Software Engineer",
+      "preferred_interview_language": "English",
+      "career_goal": "switching_jobs"
+    }
+  }'
+
+# 13. COMPLETE ALL ONBOARDING AT ONCE (for users with BOTH roles)
+curl -X POST "http://127.0.0.1:8000/api/onboarding/complete/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "common": {
+      "name": "John Doe",
+      "phone_prefix": "+91",
+      "mobile_number": "9876543210",
+      "bio": "Experienced software engineer with expertise in Python and JavaScript.",
+      "designation": "Senior Developer",
+      "company": "Tech Corp Inc.",
+      "experience_years": 5,
+      "available_time_slots": [
+        {"day": "monday", "start_time": "09:00", "end_time": "17:00"}
+      ]
+    },
+    "interviewer": {
+      "expertise_areas": [
+        {"area": "Python", "level": "expert"},
+        {"area": "System Design", "level": "intermediate"}
+      ],
+      "interviewing_experience_years": 3,
+      "credits_per_interview": 100,
+      "linkedin_profile_url": "https://linkedin.com/in/johndoe"
+    },
+    "interviewee": {
+      "skills": [
+        {"skill": "Python", "level": "expert"},
+        {"skill": "JavaScript", "level": "intermediate"}
+      ],
+      "target_role": "Senior Software Engineer",
+      "preferred_interview_language": "English",
+      "career_goal": "switching_jobs"
+    }
+  }'
+
+# ====================
+# PROFILE APIs
+# ====================
+
+# 14. GET Current User Profile
+curl -X GET "http://127.0.0.1:8000/api/profile/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 15. Update Common Fields Only (All Users)
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "common": {
+      "name": "John Doe",
+      "phone_prefix": "+91",
+      "mobile_number": "9876543210",
+      "bio": "Senior software engineer with 5+ years of experience in Python and Django",
+      "designation": "Senior Software Engineer",
+      "company": "Tech Corp Inc.",
+      "experience_years": 5,
+      "available_time_slots": [
+        {"day": "monday", "start_time": "09:00", "end_time": "17:00"},
+        {"day": "wednesday", "start_time": "14:00", "end_time": "18:00"}
+      ]
+    }
+  }''
+
+
+#Update Single Field (Partial Update)
+
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "common": {
+      "name": "John Updated"
+    }
+  }'
+
+#Update Interviewer Fields (Taker Role Only)
+
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "interviewer": {
+      "expertise_areas": [
+        {"area": "System Design", "level": "expert"},
+        {"area": "Python", "level": "intermediate"}
+      ],
+      "interviewing_experience_years": 3,
+      "credits_per_interview": 150,
+      "linkedin_profile_url": "https://linkedin.com/in/johndoe"
+    }
+  }'
+
+
+
+#Update Interviewee Fields (Attender Role Only)
+
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "interviewee": {
+      "skills": [
+        {"skill": "Python", "level": "expert"},
+        {"skill": "React", "level": "intermediate"}
+      ],
+      "target_role": "Senior Software Engineer",
+      "preferred_interview_language": "English",
+      "career_goal": "switching_jobs"
+    }
+  }'
+  
+#Add Role
+
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "add_roles": ["taker"]
+  }'
+
+#Remove Role
+
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "remove_roles": ["taker"]
+  }'  
+
+#Full Update (Both Roles)
+
+curl -X PUT "http://127.0.0.1:8000/api/profile/update/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "common": {
+      "name": "Jane Smith",
+      "phone_prefix": "+91",
+      "mobile_number": "9876543210",
+      "bio": "Full-stack developer passionate about building scalable systems",
+      "designation": "Tech Lead",
+      "company": "Tech Corp Inc.",
+      "experience_years": 8,
+      "available_time_slots": [
+        {"day": "monday", "start_time": "10:00", "end_time": "18:00"},
+        {"day": "wednesday", "start_time": "14:00", "end_time": "20:00"}
+      ]
+    },
+    "interviewer": {
+      "expertise_areas": [
+        {"area": "System Design", "level": "expert"},
+        {"area": "Java", "level": "expert"}
+      ],
+      "interviewing_experience_years": 4,
+      "credits_per_interview": 150,
+      "linkedin_profile_url": "https://linkedin.com/in/janesmith"
+    },
+    "interviewee": {
+      "skills": [
+        {"skill": "React", "level": "intermediate"},
+        {"skill": "Node.js", "level": "expert"}
+      ],
+      "target_role": "Engineering Manager",
+      "preferred_interview_language": "English",
+      "career_goal": "switching_jobs"
+    }
+  }'
+
+
+# 16. LIST Attenders (Interviewees)
+curl -X GET "http://127.0.0.1:8000/api/profiles/attenders/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 17. LIST Attenders with FILTERS
+curl -X GET "http://127.0.0.1:8000/api/profiles/attenders/?company=Google&onboarding_completed=true" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 18. LIST Attenders with SKILL FILTER
+curl -X GET "http://127.0.0.1:8000/api/profiles/attenders/?skill=Python" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 19. LIST Attenders with SORTING
+curl -X GET "http://127.0.0.1:8000/api/profiles/attenders/?sort=verified" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 20. LIST Attenders with MULTIPLE FILTERS + SORTING
+curl -X GET "http://127.0.0.1:8000/api/profiles/attenders/?company=Tech&designation=Engineer&sort=name_asc" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 21. LIST Takers (Interviewers)
+curl -X GET "http://127.0.0.1:8000/api/profiles/takers/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 22. LIST Takers with FILTERS & SORTING
+curl -X GET "http://127.0.0.1:8000/api/profiles/takers/?sort=credits_low&company=Microsoft" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 23. LIST Users with Both Roles
+curl -X GET "http://127.0.0.1:8000/api/profiles/both/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# 24. LIST Both with FILTERS & SORTING
+curl -X GET "http://127.0.0.1:8000/api/profiles/both/?sort=verified&onboarding_completed=true" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+
+# USER DETAIL API
+
+
+# 25. GET User by ID (Public profile for non-admin, Full profile for admin)
+curl -X GET "http://127.0.0.1:8000/api/users/1/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+
+# 26. LIST All Users (Admin only)
+curl -X GET "http://127.0.0.1:8000/api/admin/users/" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+# 27. LIST Users with ROLE FILTER (Admin only)
+
+curl -X GET "http://127.0.0.1:8000/api/admin/users/?role=attender" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+curl -X GET "http://127.0.0.1:8000/api/admin/users/?role=taker" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+curl -X GET "http://127.0.0.1:8000/api/admin/users/?role=both" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+# 28. LIST Users with MULTIPLE FILTERS (Admin only)
+curl -X GET "http://127.0.0.1:8000/api/admin/users/?role=attender&onboarding_completed=true&is_active=true" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+# 29. GET User by UUID (Admin only)
+curl -X GET "http://127.0.0.1:8000/api/admin/users/550e8400-e29b-41d4-a716-446655440000/" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+# 30. UPDATE User by UUID (Admin only)
+curl -X PUT "http://127.0.0.1:8000/api/admin/users/550e8400-e29b-41d4-a716-446655440000/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN" \
+  -d '{
+    "name": "Admin Updated Name",
+    "company": "Updated Company",
+    "onboarding_completed": true
+  }'
+
+# 31. DELETE User by UUID (Admin only)
+curl -X DELETE "http://127.0.0.1:8000/api/admin/users/550e8400-e29b-41d4-a716-446655440000/" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+
+
+# 32. GET All Enums
+curl -X GET "http://127.0.0.1:8000/api/enums/"
+
+
+
+# 33. GET API Root (Shows all available endpoints)
+curl -X GET "http://127.0.0.1:8000/api/"
+
+#34. Create Interview Request
+curl -X POST http://localhost:8000/api/interviews/requests/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "receiver_id": "",
+    "time_slots": [
+      "2026-01-28 16.00",
+      "2026-01-29 10.30AM"
+    ],
+    "topic": "Python Backend Mock",
+    "message": "Focus on Django and DRF",
+    "duration_minutes": 60
+  }'
+
+#35. List Interview Requests (All)
+curl -X GET http://localhost:8000/api/interviews/requests/list/ \
+  -H "Authorization: Bearer $TOKEN"
+
+#36. Get Interview Request Detail
+curl -X GET "http://localhost:8000/api/interviews/requests/<request_uuid>/" \
+  -H "Authorization: Bearer <your_access_token>"
+
+#37. Accept Interview Request (TAKER ONLY)
+# Step A: Get interview details to find the time_option UUID
+curl -X GET http://localhost:8000/api/interviews/requests/<INTERVIEW_UUID>/ \
+  -H "Authorization: Bearer $TOKEN"
+
+# Step B: Accept using one of those IDs
+curl -X POST http://localhost:8000/api/interviews/requests/<INTERVIEW_UUID>/accept/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"selected_time_option_id": "REPLACE_WITH_TIME_OPTION_UUID"}'
+
+
+#38. Reject Interview Request (TAKER ONLY)
+curl -X POST http://localhost:8000/api/interviews/requests/<INTERVIEW_UUID>/reject/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Not available during these slots."}'
+
+#39. Cancel Interview Request (SENDER only)
+curl -X POST http://localhost:8000/api/interviews/requests/<INTERVIEW_UUID>/cancel/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Changed my mind."}'
+
+
+#40. Join Interview Room (Requires Accepted Status)
+curl -X POST "http://localhost:8000/api/interviews/<request_uuid>/join/" \
+  -H "Authorization: Bearer <participant_access_token>"
+
+#41. Mark Interview as Completed:
+
+curl -X POST http://127.0.0.1:8000/api/interviews/requests/$INTERVIEW_ID/complete/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json"
+
+#42. Mark Interview as Not Attended:
+
+curl -X POST http://127.0.0.1:8000/api/interviews/requests/$INTERVIEW_ID/not-attended/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json"
+
+
+#43. Get Interview Dashboard
+
+curl -X GET "http://localhost:8000/api/interviews/dashboard/" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+
+
+#44. List Notifications:
+
+curl -X GET http://127.0.0.1:8000/api/notifications/ \
+  -H "Authorization: Bearer $TOKEN"
+
+#45.Get Unread Count:
+
+curl -X GET http://127.0.0.1:8000/api/notifications/unread-count/ \
+  -H "Authorization: Bearer $TOKEN"
+
+#46.Mark Single Notification as Read:
+
+curl -X POST http://127.0.0.1:8000/api/notifications/$NOTIFICATION_ID/mark-read/ \
+  -H "Authorization: Bearer $TOKEN"
+
+#47.Mark All as Read:
+
+curl -X POST http://127.0.0.1:8000/api/notifications/mark-all-read/ \
+  -H "Authorization: Bearer $TOKEN"
+
+
+###48. Submit Interviewer Feedback
+
+
+
+
+curl -X POST "http://localhost:8000/api/interviews/${INTERVIEW_UUID}/feedback/interviewer/" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -d '{
+        "problem_understanding_rating": 4,
+        "problem_understanding_text": "The candidate demonstrated a solid understanding of the problem requirements. They asked clarifying questions before starting to code.",
+        
+        "solution_approach_rating": 5,
+        "solution_approach_text": "Excellent approach! The candidate chose an optimal algorithm with O(n log n) time complexity and explained their reasoning clearly.",
+        
+        "implementation_skill_rating": 4,
+        "implementation_skill_text": "Clean implementation with proper variable naming. Added edge case handling. Could improve code organization slightly.",
+        
+        "communication_rating": 5,
+        "communication_text": "Outstanding communication throughout the interview. Clearly articulated thought process and was receptive to hints.",
+        
+        "overall_feedback": "Strong candidate with excellent technical skills and communication abilities. I would recommend hiring for senior developer positions. Shows great potential for growth and team collaboration."
+    }'
+
+###49. Get Feedback (View)
+
+
+curl -X GET "http://localhost:8000/api/interviews/${INTERVIEW_UUID}/feedback/interviewer/" \
+    -H "Authorization: Bearer $ACCESS_TOKEN"
+
+
+###50. Submit Candidate Feedback
+
+
+curl -X POST "http://localhost:8000/api/interviews/${INTERVIEW_UUID}/feedback/candidate/" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -d '{
+        "technical_clarity_rating": 4,
+        "technical_clarity_text": "The interviewer explained the problem statement clearly and provided helpful hints when needed.",
+        
+        "question_quality_rating": 5,
+        "question_quality_text": "The questions were relevant to the job role and tested both theoretical knowledge and practical skills.",
+        
+        "environment_rating": 4,
+        "environment_text": "The interview environment was professional and comfortable. The interviewer was friendly and made me feel at ease.",
+        
+        "overall_feedback": "Overall, I had a positive interview experience. The interviewer was knowledgeable and the questions were challenging yet fair. I would recommend this company to other candidates."
+    }'
+
+###51. Get Candidate Feedback
+
+
+curl -X GET "http://localhost:8000/api/interviews/${INTERVIEW_UUID}/feedback/candidate/" \
+    -H "Authorization: Bearer $ACCESS_TOKEN"
+
+
+###52. Get User Credit Balance
+
+curl -X GET http://localhost:8000/api/credits/balance/ \
+  -H "Authorization: Token <YOUR_TOKEN>" \
+  -H "Content-Type: application/json"
+
+
+
+###53. Get User Earnings
+
+curl -X GET http://localhost:8000/api/credits/earnings/ \
+  -H "Authorization: Token <YOUR_TOKEN>" \
+  -H "Content-Type: application/json"
+
+
+###54. Get User Transactions
+
+curl -X GET http://localhost:8000/api/credits/transactions/ \
+  -H "Authorization: Token <YOUR_TOKEN>" \
+  -H "Content-Type: application/json"
+
+#With Query Parameters (limit & type) for transactions:
+
+curl -X GET "http://localhost:8000/api/credits/transactions/?limit=10&type=interview_debit" \
+  -H "Authorization: Token <YOUR_TOKEN>" \
+  -H "Content-Type: application/json" 
+
+
+
+###55. Get User Credit Summary
+
+curl -X GET http://localhost:8000/api/credits/summary/ \
+  -H "Authorization: Token <YOUR_TOKEN>" \
+  -H "Content-Type: application/json"
+
+
+###56. Check if Taker Has Enough Credits
+
+curl -X GET "http://localhost:8000/api/credits/check/?taker_uuid=<TAKER_UUID>" \
+  -H "Authorization: Token <YOUR_TOKEN>" \
+  -H "Content-Type: application/json"  
+
+#57. Room Controls (Interviewer Only) Mute,Unmute,Eject,End
+
+curl -X POST http://localhost:8000/api/interviews/{uuid}/room/controls/ \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "mute", "identity": "user-uuid", "audio_only": true}'  
+
+#58. Get Room Info
+
+curl http://localhost:8000/api/interviews/{uuid}/room/info/ \
+  -H "Authorization: Bearer {token}"
+
+#59. Ensure Room Exists
+
+curl -X POST http://localhost:8000/api/interviews/{uuid}/room/ensure/ \
+  -H "Authorization: Bearer {token}"
+
+
+#60. List All Active Rooms
+
+curl http://localhost:8000/api/interviews/rooms/active/ \
+  -H "Authorization: Bearer {admin_token}"

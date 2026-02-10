@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <body style="font-family: Arial, sans-serif;">
+    <h2>Email Verification</h2>
+
+    <p>Hello {{ user.username }},</p>
+
+    <p>Please verify your email by clicking the button below:</p>
+
+    <p style="text-align: center;">
+      <a href="{{ activate_url }}"
+         style="
+           display: inline-block;
+           padding: 12px 20px;
+           background-color: #2563eb;
+           color: #ffffff;
+           text-decoration: none;
+           border-radius: 6px;
+           font-weight: bold;
+         ">
+        Verify Email
+      </a>
+    </p>
+
+    <p>If the button doesn’t work, copy this link:</p>
+    <p>{{ activate_url }}</p>
+
+    <p>Interview Platform Team</p>
+  </body>
+</html>
