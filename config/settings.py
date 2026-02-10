@@ -364,13 +364,15 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = "Interview Platform <rockyvasee@gmail.com>"
 CORS_ALLOWED_ORIGINS = [
-    "*",
+    "https://interview-system-frontend-9sna89ot8-raja2703s-projects.vercel.app",
 ]
-CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "*",
+    "https://interview-system-frontend-9sna89ot8-raja2703s-projects.vercel.app",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
+
 
 LIVEKIT_API_KEY = env("LIVEKIT_API_KEY", default="")
 LIVEKIT_API_SECRET = env("LIVEKIT_API_SECRET", default="")
