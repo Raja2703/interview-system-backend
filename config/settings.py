@@ -363,12 +363,12 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = "Interview Platform <rockyvasee@gmail.com>"
-CORS_ALLOWED_ORIGINS = [
-    "http://interview-system-frontend-raja2703s-projects.vercel.app"
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://interview-system-frontend-raja2703s-projects.vercel.app"
+    "https://*.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
